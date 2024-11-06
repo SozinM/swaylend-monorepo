@@ -7,6 +7,7 @@ import utc from 'dayjs/plugin/utc.js';
 import { DateTime } from 'fuels';
 import { appConfig } from './configs/index.js';
 import {
+  BasePool,
   BasePoolSnapshot,
   BasePositionSnapshot,
   CollateralConfiguration,
@@ -14,6 +15,7 @@ import {
   CollateralPoolSnapshot,
   CollateralPosition,
   CollateralPositionSnapshot,
+  EventEntity,
   MarketBasic,
   MarketConfiguration,
   Pool,
@@ -124,7 +126,7 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
     startBlock: startBlock,
   })
     .onLogMarketConfigurationEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
@@ -238,14 +240,18 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       }
     })
     .onLogCollateralAssetAdded(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
       const {
         data: {
           asset_id: { bits: asset_id },
-          configuration: { decimals, borrow_collateral_factor },
+          configuration: {
+            decimals,
+            borrow_collateral_factor,
+            liquidate_collateral_factor,
+          },
         },
       } = event;
 
@@ -321,6 +327,9 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
         collateralFactor: BigDecimal(
           borrow_collateral_factor.toString()
         ).dividedBy(FACTOR_SCALE_18.asBigDecimal()),
+        liquidationFactor: BigDecimal(
+          liquidate_collateral_factor.toString()
+        ).dividedBy(FACTOR_SCALE_18.asBigDecimal()),
         supplyIndex: BigDecimal(0),
         supplyApr: BigDecimal(0),
         borrowedAmount: 0n,
@@ -335,14 +344,14 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       await ctx.store.upsert(poolSnapshot);
     })
     .onLogCollateralAssetUpdated(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
       const {
         data: {
           asset_id: { bits: asset_id },
-          configuration: { decimals },
+          configuration: { decimals }, // TODO: Update other field
         },
       } = event;
 
@@ -371,7 +380,7 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       await ctx.store.upsert(collateralConfiguration);
     })
     .onLogUserBasicEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
@@ -409,7 +418,7 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       await ctx.store.upsert(userBasic);
     })
     .onLogUserSupplyCollateralEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
@@ -419,6 +428,7 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
           asset_id: { bits: asset_id },
           amount,
         },
+        receiptIndex,
       } = event;
 
       const address = (account.Address?.bits ?? account.ContractId?.bits)!;
@@ -437,6 +447,16 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       }
 
       const id = `${chainId}_${ctx.contractAddress}_${address}_${asset_id}`;
+
+      // Collateral price
+      const collateralPrice = await getPriceBySymbol(
+        appConfig.assets[asset_id],
+        ctx.timestamp
+      );
+
+      if (!collateralPrice) {
+        throw new Error(`No price found for ${asset_id} at ${ctx.timestamp}`);
+      }
 
       let collateralPosition = await ctx.store.get(CollateralPosition, id);
 
@@ -459,14 +479,21 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
           collateralAmountNormalized: BigDecimal(amount.toString()).dividedBy(
             BigDecimal(10).pow(collateralConfiguration.decimals)
           ),
+          collateralAmountUsd: BigDecimal(amount.toString())
+            .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+            .times(BigDecimal(collateralPrice)),
         });
       } else {
-        collateralPosition.collateralAmount =
+        const newCollateralAmount =
           collateralPosition.collateralAmount + BigInt(amount.toString());
-        collateralPosition.collateralAmountNormalized =
-          collateralPosition.collateralAmount
-            .asBigDecimal()
-            .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+        collateralPosition.collateralAmount = newCollateralAmount;
+        collateralPosition.collateralAmountNormalized = newCollateralAmount
+          .asBigDecimal()
+          .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+        collateralPosition.collateralAmountUsd = newCollateralAmount
+          .asBigDecimal()
+          .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+          .times(BigDecimal(collateralPrice));
       }
 
       await ctx.store.upsert(collateralPosition);
@@ -490,11 +517,42 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
         collateralPool.collateralAmount
           .asBigDecimal()
           .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+      collateralPool.collateralAmountUsd = collateralPool.collateralAmount
+        .asBigDecimal()
+        .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+        .times(BigDecimal(collateralPrice));
 
       await ctx.store.upsert(collateralPool);
+
+      // Collateral supply event
+      const blockNumber = ctx.transaction?.blockNumber!;
+      const eventId = `${chainId}_${ctx.contractAddress}_${blockNumber}_${receiptIndex}`;
+
+      const eventEntity = new EventEntity({
+        id: eventId,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: asset_id,
+        amount: BigInt(amount.toString()),
+        amountNormalized: BigDecimal(amount.toString()).dividedBy(
+          BigDecimal(10).pow(collateralConfiguration.decimals)
+        ),
+        amountUsd: BigDecimal(amount.toString())
+          .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+          .times(collateralPrice),
+        eventType: 'Supply',
+      });
+
+      await ctx.store.upsert(eventEntity);
     })
     .onLogUserWithdrawCollateralEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
@@ -504,6 +562,7 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
           asset_id: { bits: asset_id },
           amount,
         },
+        receiptIndex,
       } = event;
 
       const address = (account.Address?.bits ?? account.ContractId?.bits)!;
@@ -531,12 +590,26 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
         );
       }
 
-      collateralPosition.collateralAmount =
+      // Collateral price
+      const collateralPrice = await getPriceBySymbol(
+        appConfig.assets[asset_id],
+        ctx.timestamp
+      );
+
+      if (!collateralPrice) {
+        throw new Error(`No price found for ${asset_id} at ${ctx.timestamp}`);
+      }
+
+      const newCollateralAmount =
         collateralPosition.collateralAmount - BigInt(amount.toString());
-      collateralPosition.collateralAmountNormalized =
-        collateralPosition.collateralAmount
-          .asBigDecimal()
-          .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+      collateralPosition.collateralAmount = newCollateralAmount;
+      collateralPosition.collateralAmountNormalized = newCollateralAmount
+        .asBigDecimal()
+        .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+      collateralPosition.collateralAmountUsd = newCollateralAmount
+        .asBigDecimal()
+        .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+        .times(collateralPrice);
 
       // If user withdraws all collatera
       await ctx.store.upsert(collateralPosition);
@@ -560,16 +633,52 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
         collateralPool.collateralAmount
           .asBigDecimal()
           .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+      collateralPool.collateralAmountUsd = collateralPool.collateralAmount
+        .asBigDecimal()
+        .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+        .times(collateralPrice);
 
       await ctx.store.upsert(collateralPool);
+
+      // Collateral withdraw event
+      const blockNumber = ctx.transaction?.blockNumber!;
+      const eventId = `${chainId}_${ctx.contractAddress}_${blockNumber}_${receiptIndex}`;
+
+      const eventEntity = new EventEntity({
+        id: eventId,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: asset_id,
+        amount: BigInt(amount.toString()),
+        amountNormalized: BigDecimal(amount.toString()).dividedBy(
+          BigDecimal(10).pow(collateralConfiguration.decimals)
+        ),
+        amountUsd: BigDecimal(amount.toString())
+          .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+          .times(collateralPrice),
+        eventType: 'Withdrawal',
+      });
+
+      await ctx.store.upsert(eventEntity);
     })
     .onLogAbsorbCollateralEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
       const {
-        data: { account, asset_id, amount, decimals },
+        data: {
+          account,
+          asset_id: { bits: asset_id },
+          amount,
+          decimals,
+        },
       } = event;
 
       // Collateral pool reduced for absorbed collateral
@@ -599,12 +708,26 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
         );
       }
 
+      // Collateral price
+      const collateralPrice = await getPriceBySymbol(
+        appConfig.assets[asset_id],
+        ctx.timestamp
+      );
+
+      if (!collateralPrice) {
+        throw new Error(`No price found for ${asset_id} at ${ctx.timestamp}`);
+      }
+
       collateralPool.collateralAmount =
         collateralPool.collateralAmount - BigInt(amount.toString());
       collateralPool.collateralAmountNormalized =
         collateralPool.collateralAmount
           .asBigDecimal()
           .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals));
+      collateralPool.collateralAmountUsd = collateralPool.collateralAmount
+        .asBigDecimal()
+        .dividedBy(BigDecimal(10).pow(collateralConfiguration.decimals))
+        .times(collateralPrice);
 
       await ctx.store.upsert(collateralPool);
 
@@ -623,11 +746,192 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
 
       collateralPosition.collateralAmount = 0n;
       collateralPosition.collateralAmountNormalized = BigDecimal(0);
+      collateralPosition.collateralAmountUsd = BigDecimal(0);
 
       await ctx.store.upsert(collateralPosition);
     })
+    .onLogUserSupplyBaseEvent(async (event, ctx) => {
+      if (!ctx.transaction?.isStatusSuccess) {
+        return;
+      }
+
+      const {
+        data: { account, repay_amount, supply_amount },
+        receiptIndex,
+      } = event;
+
+      const address = (account.Address?.bits ?? account.ContractId?.bits)!;
+      const chainId = CHAIN_ID_MAP[ctx.chainId as keyof typeof CHAIN_ID_MAP];
+
+      // Market configuration
+      const marketConfiguration = await ctx.store.get(
+        MarketConfiguration,
+        `${chainId}_${ctx.contractAddress}`
+      );
+
+      if (!marketConfiguration) {
+        throw new Error(
+          `Market configuration not found for market ${ctx.contractAddress} on chain ${chainId}`
+        );
+      }
+
+      // Get base asset price
+      const baseAssetPrice = await getPriceBySymbol(
+        appConfig.assets[marketConfiguration.baseTokenAddress],
+        ctx.timestamp
+      );
+
+      if (!baseAssetPrice) {
+        console.error(
+          `No price found for ${marketConfiguration.baseTokenAddress} at ${ctx.timestamp}`
+        );
+      }
+
+      const basePrice = BigDecimal(baseAssetPrice ?? 0);
+
+      const blockNumber = ctx.transaction?.blockNumber!;
+      const eventId = `${chainId}_${ctx.contractAddress}_${blockNumber}_${receiptIndex}`;
+
+      // Repay event
+      let eventEntity = new EventEntity({
+        id: `${eventId}_repay`,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: marketConfiguration.baseTokenAddress,
+        amount: BigInt(repay_amount.toString()),
+        amountNormalized: BigDecimal(repay_amount.toString()).dividedBy(
+          BigDecimal(10).pow(marketConfiguration.baseTokenDecimals)
+        ),
+        amountUsd: BigDecimal(repay_amount.toString())
+          .dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals))
+          .times(basePrice),
+        eventType: 'Repay',
+      });
+
+      await ctx.store.upsert(eventEntity);
+
+      // Supply event
+      eventEntity = new EventEntity({
+        id: `${eventId}_supply`,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: marketConfiguration.baseTokenAddress,
+        amount: BigInt(supply_amount.toString()),
+        amountNormalized: BigDecimal(supply_amount.toString()).dividedBy(
+          BigDecimal(10).pow(marketConfiguration.baseTokenDecimals)
+        ),
+        amountUsd: BigDecimal(supply_amount.toString())
+          .dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals))
+          .times(basePrice),
+        eventType: 'Deposit',
+      });
+
+      await ctx.store.upsert(eventEntity);
+    })
+    .onLogUserWithdrawBaseEvent(async (event, ctx) => {
+      if (!ctx.transaction?.isStatusSuccess) {
+        return;
+      }
+
+      const {
+        data: { account, borrow_amount, withdraw_amount },
+        receiptIndex,
+      } = event;
+
+      const address = (account.Address?.bits ?? account.ContractId?.bits)!;
+      const chainId = CHAIN_ID_MAP[ctx.chainId as keyof typeof CHAIN_ID_MAP];
+
+      // Market configuration
+      const marketConfiguration = await ctx.store.get(
+        MarketConfiguration,
+        `${chainId}_${ctx.contractAddress}`
+      );
+
+      if (!marketConfiguration) {
+        throw new Error(
+          `Market configuration not found for market ${ctx.contractAddress} on chain ${chainId}`
+        );
+      }
+
+      // Get base asset price
+      const baseAssetPrice = await getPriceBySymbol(
+        appConfig.assets[marketConfiguration.baseTokenAddress],
+        ctx.timestamp
+      );
+
+      if (!baseAssetPrice) {
+        console.error(
+          `No price found for ${marketConfiguration.baseTokenAddress} at ${ctx.timestamp}`
+        );
+      }
+
+      const basePrice = BigDecimal(baseAssetPrice ?? 0);
+
+      const blockNumber = ctx.transaction?.blockNumber!;
+      const eventId = `${chainId}_${ctx.contractAddress}_${blockNumber}_${receiptIndex}`;
+
+      // Withdraw event
+      let eventEntity = new EventEntity({
+        id: `${eventId}_withdraw`,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: marketConfiguration.baseTokenAddress,
+        amount: BigInt(withdraw_amount.toString()),
+        amountNormalized: BigDecimal(withdraw_amount.toString()).dividedBy(
+          BigDecimal(10).pow(marketConfiguration.baseTokenDecimals)
+        ),
+        amountUsd: BigDecimal(withdraw_amount.toString())
+          .dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals))
+          .times(basePrice),
+        eventType: 'Withdraw',
+      });
+
+      await ctx.store.upsert(eventEntity);
+
+      // Borrow event
+      eventEntity = new EventEntity({
+        id: `${eventId}_borrow`,
+        timestamp: dayjs(ctx.timestamp.getTime()).utc().unix(),
+        chainId,
+        poolAddress: ctx.contractAddress,
+        blockNumber: Number(blockNumber),
+        logIndex: receiptIndex,
+        transactionHash: ctx.transaction?.id,
+        userAddress: address,
+        takerAddress: address,
+        tokenAddress: marketConfiguration.baseTokenAddress,
+        amount: BigInt(borrow_amount.toString()),
+        amountNormalized: BigDecimal(borrow_amount.toString()).dividedBy(
+          BigDecimal(10).pow(marketConfiguration.baseTokenDecimals)
+        ),
+        amountUsd: BigDecimal(borrow_amount.toString())
+          .dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals))
+          .times(basePrice),
+        eventType: 'Borrow',
+      });
+
+      await ctx.store.upsert(eventEntity);
+    })
     .onLogMarketBasicEvent(async (event, ctx) => {
-      if (ctx.transaction?.isStatusFailure) {
+      if (!ctx.transaction?.isStatusSuccess) {
         return;
       }
 
@@ -668,6 +972,105 @@ Object.values(appConfig.markets).forEach(({ marketAddress, startBlock }) => {
       }
 
       await ctx.store.upsert(marketBasic);
+
+      // Pool
+      const pools = (
+        await ctx.store.list(Pool, [
+          { field: 'poolType', op: '=', value: 'supply_only' },
+          {
+            field: 'poolAddress',
+            op: '=',
+            value: ctx.contractAddress,
+          },
+        ])
+      ).filter((val) => val.chainId === chainId);
+
+      if (pools.length !== 1) {
+        console.error(
+          `Exactly one pool should be found. Found: ${pools.length}`
+        );
+        return;
+      }
+
+      const pool = pools[0];
+
+      // Base pool
+      const basePoolId = `${chainId}_${ctx.contractAddress}`;
+      let basePool = await ctx.store.get(BasePool, basePoolId);
+
+      // Get market configuration
+      const marketConfigId = `${chainId}_${ctx.contractAddress}`;
+      const marketConfiguration = await ctx.store.get(
+        MarketConfiguration,
+        marketConfigId
+      );
+
+      if (!marketConfiguration) {
+        throw new Error(
+          `Market configuration not found for market ${ctx.contractAddress} on chain ${chainId}`
+        );
+      }
+
+      // Get base asset price
+      const baseAssetPrice = await getPriceBySymbol(
+        appConfig.assets[pool.underlyingTokenAddress],
+        ctx.timestamp
+      );
+
+      if (!baseAssetPrice) {
+        console.error(
+          `No price found for ${appConfig.assets[pool.underlyingTokenAddress]} at ${ctx.timestamp}`
+        );
+      }
+
+      const basePrice = BigDecimal(baseAssetPrice ?? 0);
+
+      const suppliedAmountNormalized = BigDecimal(
+        total_supply_base.toString()
+      ).dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals));
+
+      const borrowedAmountNormalized = BigDecimal(
+        total_borrow_base.toString()
+      ).dividedBy(BigDecimal(10).pow(marketConfiguration.baseTokenDecimals));
+
+      const utilization = getUtilization(
+        BigInt(total_supply_base.toString()),
+        BigInt(total_borrow_base.toString()),
+        marketBasic.baseSupplyIndex,
+        marketBasic.baseBorrowIndex
+      );
+
+      const supplyRate = getSupplyRate(marketConfiguration, utilization);
+      const borrowRate = getBorrowRate(marketConfiguration, utilization);
+      const supplyApr = getApr(supplyRate);
+      const borrowApr = getApr(borrowRate);
+
+      if (!basePool) {
+        basePool = new BasePool({
+          id: basePoolId,
+          chainId: chainId,
+          poolAddress: ctx.contractAddress,
+          suppliedAmount: BigInt(total_supply_base.toString()),
+          suppliedAmountNormalized: suppliedAmountNormalized,
+          suppliedAmountUsd: suppliedAmountNormalized.times(basePrice),
+          supplyApr: supplyApr,
+          borrowedAmount: BigInt(total_borrow_base.toString()),
+          borrowedAmountNormalized: borrowedAmountNormalized,
+          borrowedAmountUsd: borrowedAmountNormalized.times(basePrice),
+          borrowApr: borrowApr,
+        });
+      } else {
+        basePool.suppliedAmount = BigInt(total_supply_base.toString());
+        basePool.suppliedAmountNormalized = suppliedAmountNormalized;
+        basePool.suppliedAmountUsd = suppliedAmountNormalized.times(basePrice);
+        basePool.supplyApr = supplyApr;
+        basePool.borrowedAmount = BigInt(total_borrow_base.toString());
+        basePool.borrowedAmountNormalized = borrowedAmountNormalized;
+        basePool.borrowedAmountUsd = borrowedAmountNormalized.times(basePrice);
+        basePool.borrowApr = borrowApr;
+      }
+
+      await ctx.store.upsert(basePool);
     })
     // Process only current market
     .onTimeInterval(

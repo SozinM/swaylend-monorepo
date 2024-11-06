@@ -73,8 +73,48 @@ type TableRowProps = {
 const POINTS_COLLATERAL: Point[] = [
   {
     id: '1',
-    name: 'Fuel',
-    description: 'Earn Fuel Points by lending assets',
+    name: 'Passive Points',
+    description: (
+      <div className="text-md">
+        Supply this asset as collateral to earn 1 Fuel Point per dollar value.
+        <br /> Earn up to a <span className="text-primary">2x</span> multiplier
+        if the collateral is actively used for borrowing.
+        <br />
+        <br />
+        For more details, check out our{' '}
+        <a
+          href="https://swaylend.medium.com/incentivizing-useful-liquidity-on-swaylend-with-fuel-points-c2308be4b4c6"
+          className="text-primary underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          blog post
+        </a>
+        .
+      </div>
+    ),
+    icon: SYMBOL_TO_ICON.FUEL,
+  },
+  {
+    id: '2',
+    name: 'Passive Points',
+    description: (
+      <div className="text-md">
+        Supply this asset as collateral to earn 1 Fuel Point per dollar value.
+        <br />
+        <br />
+        For more details, check out our{' '}
+        <a
+          href="https://swaylend.medium.com/incentivizing-useful-liquidity-on-swaylend-with-fuel-points-c2308be4b4c6"
+          className="text-primary underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          blog post
+        </a>
+        .
+      </div>
+    ),
     icon: SYMBOL_TO_ICON.FUEL,
   },
   // {
@@ -170,9 +210,9 @@ const CollateralTableRow = ({
                       {formatUnits(
                         BigNumber(
                           collateralConfiguration.borrow_collateral_factor.toString()
-                        ),
+                        ).times(100),
                         18
-                      ).toFormat(2)}
+                      ).toFormat(0)}
                       %
                     </div>
                   </div>
@@ -182,21 +222,25 @@ const CollateralTableRow = ({
                       {formatUnits(
                         BigNumber(
                           collateralConfiguration.liquidate_collateral_factor.toString()
-                        ),
+                        ).times(100),
                         18
-                      ).toFormat(2)}
+                      ).toFormat(0)}
                       %
                     </div>
                   </div>
                   <div className="text-md flex justify-between">
                     <div className="text-lavender">Liquidation Penalty</div>
                     <div className="font-semibold text-moon">
-                      {formatUnits(
-                        BigNumber(
-                          collateralConfiguration.liquidation_penalty.toString()
-                        ),
-                        18
-                      ).toFormat(2)}
+                      {BigNumber(100)
+                        .minus(
+                          formatUnits(
+                            BigNumber(
+                              collateralConfiguration.liquidation_penalty.toString()
+                            ),
+                            16
+                          )
+                        )
+                        .toFormat(0)}
                       %
                     </div>
                   </div>
@@ -231,7 +275,14 @@ const CollateralTableRow = ({
         </div>
       </TableCell>
       <TableCell>
-        <PointIcons points={POINTS_COLLATERAL} />
+        <PointIcons
+          value={symbol === 'USDT' || symbol === 'ETH' ? '2x' : undefined}
+          points={
+            symbol === 'USDT' || symbol === 'ETH'
+              ? [POINTS_COLLATERAL[0]]
+              : [POINTS_COLLATERAL[1]]
+          }
+        />
       </TableCell>
       <TableCell>
         <div className="flex gap-x-2 w-full">

@@ -25,7 +25,7 @@ import { ToastContainer } from 'react-toastify';
 import MarketContractStoreWatcher from '@/components/Providers/MarketContractStoreWatcher';
 import { appConfig } from '@/configs';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { CHAIN_IDS, FuelConnector, Provider } from 'fuels';
+import { CHAIN_IDS, type FuelConnector, Provider } from 'fuels';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { fallback } from 'viem';
@@ -120,6 +120,7 @@ const wagmiConfig = createConfigWagmiConfig({
 const customDefaultConnectors = (): Array<FuelConnector> => {
   const provider = Provider.create(appConfig.client.fuelNodeUrl);
   const connectors: Array<FuelConnector> = [
+    new FueletWalletConnector(),
     new FuelWalletConnector(),
     new BakoSafeConnector(),
     new WalletConnectConnector({
@@ -143,7 +144,6 @@ const customDefaultConnectors = (): Array<FuelConnector> => {
 
   if (appConfig.env === 'testnet') {
     connectors.push(
-      new FueletWalletConnector(),
       new FuelWalletDevelopmentConnector(),
       new BurnerWalletConnector({
         chainId: CHAIN_IDS.fuel.testnet,

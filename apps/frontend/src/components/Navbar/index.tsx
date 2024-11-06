@@ -59,6 +59,17 @@ export const Navbar = ({ mobile = false }: { mobile?: boolean }) => {
 
   return (
     <>
+      <div className="w-full text-center bg-primary font-medium text-md text-primary-foreground py-2 px-4">
+        Start earning Fuel Activity Points by Lending and Borrowing!
+        <a
+          href="https://app.fuel.network/earn-points"
+          target="_blank"
+          rel="noreferrer"
+          className="underline ml-1"
+        >
+          Learn more
+        </a>
+      </div>
       {/* DESKTOP */}
       <div className="max-lg:hidden">
         <div className="flex justify-between items-center px-16 min-h-[93px]">
@@ -145,6 +156,27 @@ export const Navbar = ({ mobile = false }: { mobile?: boolean }) => {
                     >
                       <div className="w-full flex items-center justify-between text-md font-medium text-lavender py-1 px-0.5 gap-x-2 cursor-pointer hover:underline">
                         Official Fuel Bridge
+                        <ExternalLink className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div
+                      onMouseDown={() => {
+                        trackExternalPageView(
+                          'https://www.orbiter.finance/?source=Ethereum&dest=Fuel&token=ETH'
+                        );
+                        window.open(
+                          'https://www.orbiter.finance/?source=Ethereum&dest=Fuel&token=ETH',
+                          '_blank'
+                        );
+                        setOpenBridge(false);
+                      }}
+                      rel="noreferrer"
+                      className="w-full"
+                    >
+                      <div className="w-full flex items-center justify-between text-md font-medium text-lavender py-1 px-0.5 gap-x-2 cursor-pointer hover:underline">
+                        Orbiter Bridge
                         <ExternalLink className="w-4 h-4" />
                       </div>
                     </div>

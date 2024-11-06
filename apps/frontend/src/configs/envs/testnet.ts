@@ -15,6 +15,8 @@ export function createTestnetConfig() {
       fuelNodeUrl: process.env.NEXT_PUBLIC_FUEL_NODE_URL ?? '',
       alchemyId: process.env.NEXT_PUBLIC_ALCHEMY_ID ?? '',
       fuelOblApi: process.env.NEXT_PUBLIC_FUEL_OBL_API ?? '',
+      announcementEnabled:
+        process.env.NEXT_PUBLIC_ANNOUNCEMENT_ENABLED === 'true',
     },
     server: {
       sentioApi: process.env.SENTIO_API_URL ?? '',
@@ -34,7 +36,7 @@ const markets: DeployedMarkets = {
     oracleAddress:
       '0x25146735b29d4216639f7f8b1d7b921ff87a1d3051de62d6cceaacabeb33b8e7',
     marketAddress:
-      '0xa42a086b357cdb5ee3e7b981ea67768e38a5b6db4db35ca4dbab32ab60f48475',
+      '0xc95ba29f6172eccb58d489f9db30374ee593fadf962d215b33e79d2be2534ec1',
     tokenFactoryAddress:
       '0x3e4f1948aece07d3f30c8c5c425f914ac74653827de48394466f2a887eebe9c7',
     graphqlUrl: 'https://indexer.bigdevenergy.link/c755070/v1/graphql',
@@ -59,4 +61,9 @@ const assets: Record<string, string> = {
   '0xf3e2b3960e0930402a5d6047883f5c178a30aa5db2f0d7302d582cefb59a1575': 'BTC',
   '0x790d2c0eb869e72cf42540d928ce728c253142d5ef07ed22b75009e40660e4ea': 'BNB',
   '0x24dd639420a98a5d9d3015280e82cafefb3b88d75f996107d1a3b12da831f733': 'ezETH',
+  '0xf30eade9911f75e819deff8fa76f7cf54c477180c756f5a9c3db6fe1986fe485': 'USDT',
+  '0x66be991ed1fe4217520bdfc25a767e9dbf24e3c7ed411d6c1cd51a7c0b6d0d24': 'sDAI',
+  '0x0526a5a33267abf138d40be4a1bd982bfb00365310891c6e7e13d0d8e7c3fc23': 'weETH',
+  '0x62fb3f091da88a3a520fa7b7fd12fa1ab3cbf306d57a66e345b6e9b0b883d0c2':
+    'wstETH',
 };

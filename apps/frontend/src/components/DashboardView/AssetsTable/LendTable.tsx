@@ -51,8 +51,33 @@ import Image from 'next/image';
 const POINTS_LEND: Point[] = [
   {
     id: '1',
-    name: 'Fuel',
-    description: 'Earn Fuel Points by lending assets',
+    name: 'Activity Points',
+    description: (
+      <div className="text-md">
+        By Lending USDC on Swaylend you get{' '}
+        <span className="text-primary">4x</span> Fuel Points Multiplier:
+        <br />-{' '}
+        <span className="text-lavender font-semibold">
+          2x for Lending Activity
+        </span>
+        <br />-{' '}
+        <span className="text-lavender font-semibold">
+          2x for using USDC as Incentivised Asset
+        </span>
+        <br />
+        <br />
+        For more details, check out our{' '}
+        <a
+          href="https://swaylend.medium.com/incentivizing-useful-liquidity-on-swaylend-with-fuel-points-c2308be4b4c6"
+          className="text-primary underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          blog post
+        </a>
+        .
+      </div>
+    ),
     icon: SYMBOL_TO_ICON.FUEL,
   },
   // {
@@ -235,7 +260,7 @@ export const LendTable = () => {
                 {appConfig.assets[marketConfiguration?.baseToken.bits ?? '']}
               </TableCell>
               <TableCell>
-                <PointIcons points={POINTS_LEND} />
+                <PointIcons value="4x" points={POINTS_LEND} />
               </TableCell>
               <TableCell>
                 {userRole === USER_ROLE.BORROWER ? (
@@ -373,7 +398,7 @@ export const LendTable = () => {
                   <div className="w-1/2 text-moon font-medium">
                     Supply Points
                   </div>
-                  <PointIcons points={POINTS_LEND} />
+                  <PointIcons value="4x" points={POINTS_LEND} />
                 </div>
               </div>
             </CardContent>

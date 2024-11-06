@@ -54,8 +54,33 @@ import { useMemo } from 'react';
 const POINTS_BORROW: Point[] = [
   {
     id: '1',
-    name: 'Fuel',
-    description: 'Earn Fuel Points by lending assets',
+    name: 'Activity Points',
+    description: (
+      <div className="text-md">
+        By Borrowing USDC on Swaylend you get{' '}
+        <span className="text-primary">4x</span> Fuel Points Multiplier:
+        <br />-{' '}
+        <span className="text-lavender font-semibold">
+          2x for Borrowing Activity
+        </span>
+        <br />-{' '}
+        <span className="text-lavender font-semibold">
+          2x for using USDC as Incentivised Asset
+        </span>
+        <br />
+        <br />
+        For more details, check out our{' '}
+        <a
+          href="https://swaylend.medium.com/incentivizing-useful-liquidity-on-swaylend-with-fuel-points-c2308be4b4c6"
+          className="text-primary underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          blog post
+        </a>
+        .
+      </div>
+    ),
     icon: SYMBOL_TO_ICON.FUEL,
   },
   // {
@@ -261,7 +286,7 @@ export const BorrowTable = () => {
               </TableCell>
               <TableCell>{borrowedBalance}</TableCell>
               <TableCell>
-                <PointIcons points={POINTS_BORROW} />
+                <PointIcons value="4x" points={POINTS_BORROW} />
               </TableCell>
               <TableCell>
                 {userRole === USER_ROLE.LENDER ? (
@@ -395,7 +420,7 @@ export const BorrowTable = () => {
                   <div className="w-1/2 text-moon font-medium">
                     Borrow Points
                   </div>
-                  <PointIcons points={POINTS_BORROW} />
+                  <PointIcons value="4x" points={POINTS_BORROW} />
                 </div>
               </div>
             </CardContent>
