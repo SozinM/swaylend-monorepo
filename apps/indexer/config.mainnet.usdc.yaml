@@ -1,5 +1,6 @@
 name: Swaylend USDC Market
 ecosystem: fuel
+rollback_on_reorg: false
 networks:
   - id: 9889
     start_block: 3000000
