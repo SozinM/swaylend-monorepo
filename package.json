@@ -7,13 +7,9 @@
     "lint:fix": "biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
+    "@biomejs/biome": "1.9.4",
     "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.9",
-    "@graphql-codegen/cli": "^5.0.2",
-    "@graphql-codegen/client-preset": "^4.3.3",
-    "@graphql-typed-document-node/core": "^3.2.0",
-    "graphql": "^16.9.0"
+    "@changesets/cli": "^2.27.10"
   },
   "packageManager": "pnpm@9.0.6",
   "engines": {
@@ -22,5 +18,23 @@
   "volta": {
     "node": "20.13.1",
     "pnpm": "9.0.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "fuels": "0.96.1",
+      "@fuel-ts/contract": "0.96.1",
+      "@fuel-ts/account": "0.96.1",
+      "@fuel-ts/abi-coder": "0.96.1",
+      "@fuel-ts/address": "0.96.1",
+      "@fuel-ts/crypto": "0.96.1",
+      "@fuel-ts/errors": "0.96.1",
+      "@fuel-ts/hasher": "0.96.1",
+      "@fuel-ts/interfaces": "0.96.1",
+      "@fuel-ts/math": "0.96.1",
+      "@fuel-ts/transactions": "0.96.1",
+      "@fuel-ts/utils": "0.96.1",
+      "@fuel-ts/versions": "0.96.1",
+      "@fuel-ts/program": "0.96.1"
+    }
   }
 }
