@@ -1,9 +1,35 @@
 // @ts-check
 
+const CONNECT_DOMAINS = [
+  // CDN
+  'https://static.swaylend.com',
+  'https://testnet-swaylend.b-cdn.net',
+  // Swaylend API
+  'https://testnet-api.swaylend.com',
+  'https://api.swaylend.com',
+  // Fuel
+  'https://testnet.fuel.network',
+  'https://mainnet.fuel.network',
+  // Outside domains
+  'https://api.web3modal.org',
+  'https://api.bako.global',
+  'wss://relay.walletconnect.com',
+  // PostHog
+  'https://eu.i.posthog.com',
+  // Sentio
+  'https://app.sentio.xyz',
+  // Hermes
+  'https://gateway-lon.liquify.com',
+  'https://hermes.pyth.network',
+  // OpenBlock
+  'https://www.data-openblocklabs.com',
+];
+
 const CSP_HEADER = `
-    default-src 'self' https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    default-src 'self';
+    connect-src 'self' https://app.swaylend.com ${CONNECT_DOMAINS.join(' ')};
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
-    style-src 'self' 'unsafe-inline' https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    style-src 'self' 'unsafe-inline' https://static.swaylend.com https://testnet-swaylend.b-cdn.net https://fonts.googleapis.com;
     img-src 'self' blob: data: https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
     font-src 'self' https://fonts.googleapis.com https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
     object-src 'none';
