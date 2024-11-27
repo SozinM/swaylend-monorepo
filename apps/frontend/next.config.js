@@ -1,11 +1,11 @@
 // @ts-check
 
 const CSP_HEADER = `
-    default-src 'self' static.swaylend.com;
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live static.swaylend.com;
-    style-src 'self' 'unsafe-inline' static.swaylend.com;
-    img-src 'self' blob: data: static.swaylend.com;
-    font-src 'self' https://fonts.googleapis.com static.swaylend.com;
+    default-src 'self' https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    style-src 'self' 'unsafe-inline' https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    img-src 'self' blob: data: https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    font-src 'self' https://fonts.googleapis.com https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
@@ -15,14 +15,19 @@ const CSP_HEADER = `
 
 /** @type {import('next').NextConfig} */
 module.exports = (phase, { defaultConfig }) => {
+  let assetPrefix = undefined;
+
+  if (process.env.USE_CDN === 'mainnet') {
+    assetPrefix = 'https://static.swaylend.com';
+  } else if (process.env.USE_CDN === 'testnet') {
+    assetPrefix = 'https://testnet-swaylend.b-cdn.net';
+  }
+
   /**
    * @type {import('next').NextConfig}
    */
   const nextConfig = {
-    assetPrefix:
-      process.env.USE_CDN === 'true'
-        ? 'https://static.swaylend.com'
-        : undefined,
+    assetPrefix: assetPrefix,
     /* config options here */
     webpack: (config, _) => {
       // SVGR Config from: https://react-svgr.com/docs/next/
