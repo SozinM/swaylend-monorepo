@@ -1,11 +1,17 @@
 // @ts-check
 
-const securityHeaders = [
-  {
-    key: 'X-Frame-Options',
-    value: 'SAMEORIGIN',
-  },
-];
+const CSP_HEADER = `
+    default-src 'self' static.swaylend.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live static.swaylend.com;
+    style-src 'self' 'unsafe-inline' static.swaylend.com;
+    img-src 'self' blob: data: static.swaylend.com;
+    font-src 'self' https://fonts.googleapis.com static.swaylend.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+`;
 
 /** @type {import('next').NextConfig} */
 module.exports = (phase, { defaultConfig }) => {
@@ -58,7 +64,16 @@ module.exports = (phase, { defaultConfig }) => {
         {
           // Apply security headers to all routes
           source: '/(.*)',
-          headers: securityHeaders,
+          headers: [
+            {
+              key: 'X-Frame-Options',
+              value: 'SAMEORIGIN',
+            },
+            {
+              key: 'Content-Security-Policy',
+              value: CSP_HEADER.replace(/\n/g, ''),
+            },
+          ],
         },
       ];
     },
