@@ -1,6 +1,11 @@
 // @ts-check
 
-const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
+const securityHeaders = [
+  {
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN',
+  },
+];
 
 /** @type {import('next').NextConfig} */
 module.exports = (phase, { defaultConfig }) => {
@@ -47,6 +52,15 @@ module.exports = (phase, { defaultConfig }) => {
       };
 
       return config;
+    },
+    async headers() {
+      return [
+        {
+          // Apply security headers to all routes
+          source: '/(.*)',
+          headers: securityHeaders,
+        },
+      ];
     },
   };
 
