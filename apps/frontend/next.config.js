@@ -13,7 +13,9 @@ const CONNECT_DOMAINS = [
   // Outside domains
   'https://api.web3modal.org',
   'wss://relay.walletconnect.com',
-  'https://verify.walletconnect.com/',
+  'https://verify.walletconnect.com',
+  'https://verify.walletconnect.org',
+  'wss://relay.walletconnect.org',
   'https://api.bako.global',
   'wss://api.bako.global',
   // PostHog
@@ -36,7 +38,7 @@ const CSP_HEADER = `
     font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
     object-src 'none';
     base-uri 'self';
-    frame-src 'self' https://verify.walletconnect.com/;
+    frame-src 'self' https://verify.walletconnect.com https://verify.walletconnect.org;
     form-action 'self';
     frame-ancestors 'none';
     upgrade-insecure-requests;
