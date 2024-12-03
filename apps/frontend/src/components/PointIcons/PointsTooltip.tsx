@@ -52,10 +52,10 @@ export const POINTS_COLLATERAL: Point[] = [
   },
   {
     id: '3',
-    name: 'Swaypoints',
+    name: 'SwayPoints',
     description: (
       <div className="text-md">
-        Supply this asset as collateral to earn 1 Swaypoint per dollar value.
+        Supply this asset as collateral to earn 1 SwayPoints per dollar value.
       </div>
     ),
     icon: SYMBOL_TO_ICON.SWAY,
@@ -98,11 +98,11 @@ export const POINTS_BORROW: Point[] = [
   },
   {
     id: '2',
-    name: 'Swaypoints',
+    name: 'SwayPoints',
     description: (
       <div className="text-md">
         By Borrowing USDC on Swaylend you get a{' '}
-        <span className="text-primary">5x</span> Swaypoints Multiplier.
+        <span className="text-primary">5x</span> SwayPoints Multiplier.
       </div>
     ),
     icon: SYMBOL_TO_ICON.SWAY,
@@ -145,11 +145,11 @@ export const POINTS_LEND: Point[] = [
   },
   {
     id: '2',
-    name: 'Swaypoints',
+    name: 'SwayPoints',
     description: (
       <div className="text-md">
         By Lending USDC on Swaylend you get a{' '}
-        <span className="text-primary">3x</span> Swaypoints Multiplier.
+        <span className="text-primary">3x</span> SwayPoints Multiplier.
       </div>
     ),
     icon: SYMBOL_TO_ICON.SWAY,

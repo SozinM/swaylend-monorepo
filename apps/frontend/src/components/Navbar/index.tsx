@@ -59,10 +59,10 @@ export const Navbar = ({ mobile = false }: { mobile?: boolean }) => {
 
   return (
     <>
-      <div className="w-full text-center bg-primary font-medium text-md text-primary-foreground py-2 px-4">
-        Start earning Fuel Activity Points by Lending and Borrowing!
+      <div className="w-full text-center bg-purple font-medium text-md text-lavender py-2 px-4">
+        SwayPoints are live! Start earning points now.
         <a
-          href="https://app.fuel.network/earn-points"
+          href="https://docs.swaylend.com/swaypoints"
           target="_blank"
           rel="noreferrer"
           className="underline ml-1"

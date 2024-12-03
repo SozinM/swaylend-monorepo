@@ -45,7 +45,7 @@ export const Points = () => {
         className="flex flex-col gap-y-2 items-center w-[258px] px-[24px]"
       >
         <div className="flex flex-col gap-y-2 items-center border border-white/10 w-full p-2 rounded-xl">
-          <div className="text-primary">Swaypoints</div>
+          <div className="text-primary">SwayPoints</div>
           <div className={cn('text-lavender font-semibold')}>
             {isConnected ? (user ? user.points : '0') : 'Connect Wallet'}
           </div>
