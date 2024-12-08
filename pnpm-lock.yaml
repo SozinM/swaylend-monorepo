@@ -225,8 +225,8 @@ importers:
         specifier: 20.17.x
         version: 20.17.6
       envio:
-        specifier: 2.8.1
-        version: 2.8.1(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: 2.10.0
+        version: 2.10.0(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       mocha:
         specifier: 10.2.0
         version: 10.2.0
@@ -2480,10 +2480,6 @@ packages:
 
   '@metamask/safe-event-emitter@2.0.0':
     resolution: {integrity: sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==}
-
-  '@metamask/safe-event-emitter@3.1.1':
-    resolution: {integrity: sha512-ihb3B0T/wJm1eUuArYP4lCTSEoZsClHhuWyfo/kMX3m/odpqNcPfsz5O2A3NT7dXCAgWPGDQGPqygCpgeniKMw==}
-    engines: {node: '>=12.0.0'}
 
   '@metamask/safe-event-emitter@3.1.2':
     resolution: {integrity: sha512-5yb2gMI1BDm0JybZezeoX/3XhPDOtTbcFvpTXM9kxsoZjPZFh4XciqRbpD6N86HYZqWDhEaKUDuOyR0sQHEjMA==}
@@ -5643,28 +5639,28 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
 
-  envio-darwin-arm64@2.8.1:
-    resolution: {integrity: sha512-FscKompMh0aigoX+EGCDKL1O6UeeCE/cOW/imM6o3XFW1tW9KSSZSU5R7O6cUxKO29UFw767h5qlocJ/QWn4NQ==}
+  envio-darwin-arm64@2.10.0:
+    resolution: {integrity: sha512-Y6SG6FKCrpQ4Ts1CMZ4GBwFC6koimutBUPfSPvlEHWIYKafmuqs9qyFvBOA73/UjnrMmo664oy0Z32FDWYjdxw==}
     cpu: [arm64]
     os: [darwin]
 
-  envio-darwin-x64@2.8.1:
-    resolution: {integrity: sha512-JfcN1+v5+palRiZxIhPFf5pV3MATsDcW433dPOCNz9wy/XrJgI60sq3R4l4YxhTGBLsH4EyeRiVTWBU6/S22Iw==}
+  envio-darwin-x64@2.10.0:
+    resolution: {integrity: sha512-1DINgOiMET3pz3nGPxwA7SPOT4rCW08hl71aO1FibzCPG5upQBu/cmMolJTguGAYqJrvfdr5gpZO93tXugV4Cw==}
     cpu: [x64]
     os: [darwin]
 
-  envio-linux-arm64@2.8.1:
-    resolution: {integrity: sha512-Cr1Fr8xeT0lWtrU8Uhi2E7YHwm/gxcZ7BPcqFCC6w7AdJqokRy4FasL2+E7M3LwrpytKA6ICy0suaxOnmd2mAA==}
+  envio-linux-arm64@2.10.0:
+    resolution: {integrity: sha512-N+ziq60hDWg+nhrGublub4okLNboXJKAnpBZOVXyBYk/4NcQiIXQXXlqmPRgZD13SVQ2P0Pwwtjm8hMDPOT/dg==}
     cpu: [arm64]
     os: [linux]
 
-  envio-linux-x64@2.8.1:
-    resolution: {integrity: sha512-ZyQ5wssR/pWCiAAppID1MhKVRL1Deye/UIwy0+zwLskxOXMrnfpMW8AYzTMGd8ag++QnlMHms3SEkuWxsiwXqw==}
+  envio-linux-x64@2.10.0:
+    resolution: {integrity: sha512-gCq7xk4B1myEt1mbgjJDR8uFj7X4OdNV4ZcSFn235tqvlw27Yyw7tREOREP9QQENf7fnXFqIUPbDxVjDocYFBQ==}
     cpu: [x64]
     os: [linux]
 
-  envio@2.8.1:
-    resolution: {integrity: sha512-TWn6yBO0oJ/mHEjBsf+46E+oeXllflrN+FoZaskfOIT9LTiMLa7ODeFkX6arJ5+LHejPDj+CGwMEXsBdL6mqWQ==}
+  envio@2.10.0:
+    resolution: {integrity: sha512-iosQOURqJ5lSL1WNoSMEkcuChdsb6Lj1NESRgcR/xu6D+KtYBkEz43RzD5V/gwk3GraDp7vVM64a5D6OF5FKBQ==}
     hasBin: true
 
   err-code@3.0.1:
@@ -7785,9 +7781,6 @@ packages:
     resolution: {integrity: sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==}
     engines: {node: '>=0.12'}
 
-  picocolors@1.1.0:
-    resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
-
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -8335,8 +8328,8 @@ packages:
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
 
-  rescript-schema@8.2.0:
-    resolution: {integrity: sha512-pfRNB9kvafUYe+RgvsExiazJioi/iV8gmjK3xOw/jeSgPIIDoVhflnmpoz+vuiwlulYkNT/7u2+2EsCrph7QKA==}
+  rescript-schema@8.1.0:
+    resolution: {integrity: sha512-syU4Wvy2tJzBKkqa8ad1yYSDIh8EoKGUsZv6Wa0YpERqb7H6Kemtc6zU+BxIghahzShb6L7RMfVNuKC48KluIg==}
     peerDependencies:
       rescript: 11.x
 
@@ -9764,7 +9757,7 @@ snapshots:
   '@babel/code-frame@7.25.7':
     dependencies:
       '@babel/highlight': 7.25.7
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -10130,7 +10123,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.25.7
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/parser@7.25.7':
     dependencies:
@@ -12844,7 +12837,7 @@ snapshots:
   '@metamask/json-rpc-engine@8.0.2':
     dependencies:
       '@metamask/rpc-errors': 6.4.0
-      '@metamask/safe-event-emitter': 3.1.1
+      '@metamask/safe-event-emitter': 3.1.2
       '@metamask/utils': 8.5.0
     transitivePeerDependencies:
       - supports-color
@@ -12852,7 +12845,7 @@ snapshots:
   '@metamask/json-rpc-middleware-stream@7.0.2':
     dependencies:
       '@metamask/json-rpc-engine': 8.0.2
-      '@metamask/safe-event-emitter': 3.1.1
+      '@metamask/safe-event-emitter': 3.1.2
       '@metamask/utils': 8.5.0
       readable-stream: 3.6.2
     transitivePeerDependencies:
@@ -12873,7 +12866,7 @@ snapshots:
       '@metamask/json-rpc-middleware-stream': 7.0.2
       '@metamask/object-multiplex': 2.0.0
       '@metamask/rpc-errors': 6.4.0
-      '@metamask/safe-event-emitter': 3.1.1
+      '@metamask/safe-event-emitter': 3.1.2
       '@metamask/utils': 8.5.0
       detect-browser: 5.3.0
       extension-port-stream: 3.0.0
@@ -12892,8 +12885,6 @@ snapshots:
       - supports-color
 
   '@metamask/safe-event-emitter@2.0.0': {}
-
-  '@metamask/safe-event-emitter@3.1.1': {}
 
   '@metamask/safe-event-emitter@3.1.2': {}
 
@@ -14227,7 +14218,7 @@ snapshots:
   '@safe-global/safe-apps-sdk@9.1.0(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
       '@safe-global/safe-gateway-typescript-sdk': 3.22.2
-      viem: 2.20.1(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      viem: 2.21.0(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -17774,29 +17765,29 @@ snapshots:
 
   envinfo@7.14.0: {}
 
-  envio-darwin-arm64@2.8.1:
+  envio-darwin-arm64@2.10.0:
     optional: true
 
-  envio-darwin-x64@2.8.1:
+  envio-darwin-x64@2.10.0:
     optional: true
 
-  envio-linux-arm64@2.8.1:
+  envio-linux-arm64@2.10.0:
     optional: true
 
-  envio-linux-x64@2.8.1:
+  envio-linux-x64@2.10.0:
     optional: true
 
-  envio@2.8.1(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8):
+  envio@2.10.0(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8):
     dependencies:
       '@envio-dev/hypersync-client': 0.6.2
       rescript: 11.1.3
-      rescript-schema: 8.2.0(rescript@11.1.3)
+      rescript-schema: 8.1.0(rescript@11.1.3)
       viem: 2.21.0(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
     optionalDependencies:
-      envio-darwin-arm64: 2.8.1
-      envio-darwin-x64: 2.8.1
-      envio-linux-arm64: 2.8.1
-      envio-linux-x64: 2.8.1
+      envio-darwin-arm64: 2.10.0
+      envio-darwin-x64: 2.10.0
+      envio-linux-arm64: 2.10.0
+      envio-linux-x64: 2.10.0
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -20298,8 +20289,6 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
 
-  picocolors@1.1.0: {}
-
   picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
@@ -20948,7 +20937,7 @@ snapshots:
 
   requires-port@1.0.0: {}
 
-  rescript-schema@8.2.0(rescript@11.1.3):
+  rescript-schema@8.1.0(rescript@11.1.3):
     dependencies:
       rescript: 11.1.3
 
@@ -21114,7 +21103,7 @@ snapshots:
     dependencies:
       elliptic: 6.5.7
       node-addon-api: 5.1.0
-      node-gyp-build: 4.8.2
+      node-gyp-build: 4.8.4
 
   secp256k1@5.0.1:
     dependencies:
@@ -21526,7 +21515,7 @@ snapshots:
       css-tree: 2.3.1
       css-what: 6.1.0
       csso: 5.0.5
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   swap-case@2.0.2:
     dependencies:
@@ -21958,7 +21947,7 @@ snapshots:
     dependencies:
       browserslist: 4.24.0
       escalade: 3.2.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   upper-case-first@2.0.2:
     dependencies:
@@ -22182,7 +22171,7 @@ snapshots:
   webauthn-p256@0.0.5:
     dependencies:
       '@noble/curves': 1.4.0
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.5.0
 
   webcrypto-core@1.8.1:
     dependencies:
