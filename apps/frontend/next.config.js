@@ -1,17 +1,64 @@
 // @ts-check
 
-const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
+const CONNECT_DOMAINS = [
+  // CDN
+  'https://static.swaylend.com',
+  'https://testnet-swaylend.b-cdn.net',
+  // Swaylend API
+  'https://testnet-api.swaylend.com',
+  'https://api.swaylend.com',
+  // Fuel
+  'https://testnet.fuel.network',
+  'https://mainnet.fuel.network',
+  // Outside domains
+  'https://api.web3modal.org',
+  'wss://relay.walletconnect.com',
+  'https://verify.walletconnect.com',
+  'https://verify.walletconnect.org',
+  'wss://relay.walletconnect.org',
+  'https://api.bako.global',
+  'wss://api.bako.global',
+  // PostHog
+  'https://eu.i.posthog.com',
+  // Sentio
+  'https://app.sentio.xyz',
+  // Hermes
+  'https://gateway-lon.liquify.com',
+  'https://hermes.pyth.network',
+  // OpenBlock
+  'https://www.data-openblocklabs.com',
+];
+
+const CSP_HEADER = `
+    default-src 'self';
+    connect-src 'self' https://app.swaylend.com ${CONNECT_DOMAINS.join(' ')};
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    style-src 'self' 'unsafe-inline' https://static.swaylend.com https://testnet-swaylend.b-cdn.net https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://static.swaylend.com https://testnet-swaylend.b-cdn.net;
+    object-src 'none';
+    base-uri 'self';
+    frame-src 'self' https://verify.walletconnect.com https://verify.walletconnect.org;
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+`;
 
 /** @type {import('next').NextConfig} */
 module.exports = (phase, { defaultConfig }) => {
+  let assetPrefix = undefined;
+
+  if (process.env.USE_CDN === 'mainnet') {
+    assetPrefix = 'https://static.swaylend.com';
+  } else if (process.env.USE_CDN === 'testnet') {
+    assetPrefix = 'https://testnet-swaylend.b-cdn.net';
+  }
+
   /**
    * @type {import('next').NextConfig}
    */
   const nextConfig = {
-    assetPrefix:
-      process.env.USE_CDN === 'true'
-        ? 'https://static.swaylend.com'
-        : undefined,
+    assetPrefix: assetPrefix,
     /* config options here */
     webpack: (config, _) => {
       // SVGR Config from: https://react-svgr.com/docs/next/
@@ -47,6 +94,24 @@ module.exports = (phase, { defaultConfig }) => {
       };
 
       return config;
+    },
+    async headers() {
+      return [
+        {
+          // Apply security headers to all routes
+          source: '/(.*)',
+          headers: [
+            {
+              key: 'X-Frame-Options',
+              value: 'SAMEORIGIN',
+            },
+            {
+              key: 'Content-Security-Policy',
+              value: CSP_HEADER.replace(/\n/g, ''),
+            },
+          ],
+        },
+      ];
     },
   };
 

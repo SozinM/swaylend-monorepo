@@ -1,4 +1,15 @@
 {
+  "headers": [
+    {
+      "source": "/ingest/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://app.swaylend.com"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/ingest/static/:path*",
